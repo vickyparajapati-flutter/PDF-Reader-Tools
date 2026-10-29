@@ -7,12 +7,12 @@ class AdHelper {
   /// In release mode (Play Store production), automatically switches to live IDs!
   static bool get isTestMode => kDebugMode;
 
-  // Real Production AdMob Ad Unit IDs (replace with your AdMob IDs when publishing)
-  static const String _liveAppOpenId = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String _liveBannerId = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String _liveInterstitialId = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String _liveRewardedId = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String _liveNativeId = 'ca-app-pub-XXXXXXXXXXXXXXXX/XXXXXXXXXX';
+  // Real Production AdMob Ad Unit IDs
+  static const String _liveAppOpenId = 'ca-app-pub-7517890910821454/7834343622';
+  static const String _liveBannerId = 'ca-app-pub-7517890910821454/2438546719';
+  static const String _liveInterstitialId = 'ca-app-pub-7517890910821454/1340640355';
+  static const String _liveRewardedId = 'ca-app-pub-7517890910821454/2540161057';
+  static const String _liveNativeId = 'ca-app-pub-7517890910821454/9546880548';
 
   /// App Open Ad Unit ID
   static String get appOpenAdUnitId {
