@@ -10,6 +10,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/storage_helper.dart';
 import '../models/pdf_security_helper.dart';
 import '../models/ad_helper.dart';
+import '../models/pro_subscription_manager.dart';
 import 'pdf_viewer_screen.dart';
 import 'widgets/banner_ad_widget.dart';
 import 'widgets/native_ad_widget.dart';
@@ -34,9 +35,11 @@ class _CompressPdfScreenState extends State<CompressPdfScreen> {
   // 0: High Compression (72 DPI)
   // 1: Medium Compression (Balanced, 110 DPI)
   // 2: Low Compression (150 DPI)
-  // 3: Ultra Max Compression (Pro 50 DPI - Unlocked via Rewarded Ad)
+  // 3: Ultra Max Compression (Pro 50 DPI - Unlocked via Rewarded Ad or Pro Subscription)
   int _compressionLevel = 1;
   bool _isUltraUnlocked = false;
+
+  bool get _canUseUltra => ProSubscriptionManager.isPro || _isUltraUnlocked;
 
   final TextEditingController _fileNameController = TextEditingController();
 
@@ -696,7 +699,7 @@ class _CompressPdfScreenState extends State<CompressPdfScreen> {
                         // Ultra Max Compression Card (Rewarded Video Unlock)
                         InkWell(
                           onTap: () {
-                            if (_isUltraUnlocked) {
+                            if (_canUseUltra) {
                               setState(() => _compressionLevel = 3);
                             } else {
                               _promptUnlockUltra();
@@ -745,7 +748,7 @@ class _CompressPdfScreenState extends State<CompressPdfScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: _isUltraUnlocked
+                                              color: _canUseUltra
                                                   ? Colors.green
                                                   : const Color(0xFFFF8F00),
                                               borderRadius: BorderRadius.circular(6),
@@ -754,15 +757,15 @@ class _CompressPdfScreenState extends State<CompressPdfScreen> {
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Icon(
-                                                  _isUltraUnlocked
+                                                  _canUseUltra
                                                       ? Icons.check_circle_rounded
-                                                      : Icons.play_circle_fill_rounded,
+                                                      : Icons.workspace_premium_rounded,
                                                   size: 11,
                                                   color: Colors.white,
                                                 ),
                                                 const SizedBox(width: 3),
                                                 Text(
-                                                  _isUltraUnlocked ? 'UNLOCKED' : 'PRO (AD)',
+                                                  _canUseUltra ? 'PRO ACTIVE' : 'PRO',
                                                   style: const TextStyle(
                                                     fontSize: 9.5,
                                                     fontWeight: FontWeight.w800,

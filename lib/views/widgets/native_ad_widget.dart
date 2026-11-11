@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../models/ad_helper.dart';
+import '../../models/pro_subscription_manager.dart';
 
 enum NativeTemplateStyleType { small, medium }
 
@@ -27,7 +28,9 @@ class _NativeAdWidgetState extends State<NativeAdWidget> with AutomaticKeepAlive
   @override
   void initState() {
     super.initState();
-    _loadNativeAd();
+    if (!ProSubscriptionManager.isPro) {
+      _loadNativeAd();
+    }
   }
 
   void _loadNativeAd() {
@@ -87,32 +90,33 @@ class _NativeAdWidgetState extends State<NativeAdWidget> with AutomaticKeepAlive
   Widget build(BuildContext context) {
     super.build(context);
 
-    // If ad has not loaded yet, don't show any empty container (0 height)
-    if (!_isAdLoaded || _nativeAd == null) {
-      return const SizedBox.shrink();
-    }
+    return ValueListenableBuilder<bool>(
+      valueListenable: ProSubscriptionManager.isProUserNotifier,
+      builder: (context, isPro, child) {
+        if (isPro || !_isAdLoaded || _nativeAd == null) {
+          return const SizedBox.shrink();
+        }
 
-    // Google Mobile Ads standard template dimensions:
-    // Small template: 90 - 100 height (perfect for list items)
-    // Medium template: 300 - 360 height (perfect for card sections)
-    final double height = widget.templateType == NativeTemplateStyleType.small ? 92.0 : 320.0;
+        final double height = widget.templateType == NativeTemplateStyleType.small ? 92.0 : 320.0;
 
-    return Container(
-      height: height,
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        return Container(
+          height: height,
+          margin: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: AdWidget(ad: _nativeAd!),
+          clipBehavior: Clip.antiAlias,
+          child: AdWidget(ad: _nativeAd!),
+        );
+      },
     );
   }
 }

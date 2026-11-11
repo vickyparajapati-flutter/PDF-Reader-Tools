@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'pro_subscription_manager.dart';
 
 class AdHelper {
   /// In debug mode (development / testing), always uses Google official Test IDs.
@@ -75,6 +76,10 @@ class AppOpenAdManager {
 
   /// Loads an App Open Ad with completion callback
   void loadAd({Function(bool success)? onLoaded}) {
+    if (ProSubscriptionManager.isPro) {
+      onLoaded?.call(false);
+      return;
+    }
     if (_isLoadingAd || isAdAvailable) {
       onLoaded?.call(isAdAvailable);
       return;
@@ -113,6 +118,10 @@ class AppOpenAdManager {
 
   /// Shows the App Open Ad if available
   void showAdIfAvailable({Function()? onComplete}) {
+    if (ProSubscriptionManager.isPro) {
+      onComplete?.call();
+      return;
+    }
     if (!isAdAvailable) {
       loadAd();
       onComplete?.call();
@@ -156,6 +165,7 @@ class InterstitialAdManager {
 
   /// Preloads an Interstitial Ad in background so it's instantly ready when user saves
   void loadAd() {
+    if (ProSubscriptionManager.isPro) return;
     if (_isLoading || _interstitialAd != null) return;
 
     _isLoading = true;
@@ -182,6 +192,10 @@ class InterstitialAdManager {
   /// Shows the Interstitial Ad. Calls [onDismissed] immediately if ad is not loaded
   /// or when user closes the ad.
   void showAd({required VoidCallback onDismissed}) {
+    if (ProSubscriptionManager.isPro) {
+      onDismissed();
+      return;
+    }
     if (_interstitialAd == null) {
       debugPrint('[AdHelper] Interstitial Ad not loaded, proceeding without ad.');
       loadAd(); // Try loading for next time

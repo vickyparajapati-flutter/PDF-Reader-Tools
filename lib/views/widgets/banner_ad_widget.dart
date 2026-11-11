@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../models/ad_helper.dart';
+import '../../models/pro_subscription_manager.dart';
 
 class BannerAdWidget extends StatefulWidget {
   const BannerAdWidget({super.key});
@@ -16,7 +17,9 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   @override
   void initState() {
     super.initState();
-    _loadBannerAd();
+    if (!ProSubscriptionManager.isPro) {
+      _loadBannerAd();
+    }
   }
 
   void _loadBannerAd() {
@@ -52,17 +55,22 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isLoaded || _bannerAd == null) {
-      // Invisible zero-height container when ad is not loaded (no awkward layout shift)
-      return const SizedBox.shrink();
-    }
+    return ValueListenableBuilder<bool>(
+      valueListenable: ProSubscriptionManager.isProUserNotifier,
+      builder: (context, isPro, child) {
+        if (isPro || !_isLoaded || _bannerAd == null) {
+          // Invisible zero-height container when ad is not loaded or user is PRO
+          return const SizedBox.shrink();
+        }
 
-    return Container(
-      width: _bannerAd!.size.width.toDouble(),
-      height: _bannerAd!.size.height.toDouble(),
-      alignment: Alignment.center,
-      color: Colors.transparent,
-      child: AdWidget(ad: _bannerAd!),
+        return Container(
+          width: _bannerAd!.size.width.toDouble(),
+          height: _bannerAd!.size.height.toDouble(),
+          alignment: Alignment.center,
+          color: Colors.transparent,
+          child: AdWidget(ad: _bannerAd!),
+        );
+      },
     );
   }
 }

@@ -9,6 +9,7 @@ import 'package:open_filex/open_filex.dart';
 import '../models/storage_helper.dart';
 import '../models/pdf_security_helper.dart';
 import '../models/ad_helper.dart';
+import '../models/pro_subscription_manager.dart';
 import 'widgets/banner_ad_widget.dart';
 
 class PdfToImagesScreen extends StatefulWidget {
@@ -30,9 +31,11 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
   // Options
   // 0: JPG, 1: PNG
   int _imageFormat = 0;
-  // 0: High (2x scale), 1: Standard (1.5x), 2: Compact (1x), 3: Ultra HD 4K (3x scale - Rewarded Ad)
+  // 0: High (2x scale), 1: Standard (1.5x), 2: Compact (1x), 3: Ultra HD 4K (3x scale - Rewarded Ad / Pro)
   int _quality = 0;
   bool _isUltraHdUnlocked = false;
+
+  bool get _canUseUltraHd => ProSubscriptionManager.isPro || _isUltraHdUnlocked;
 
   @override
   void initState() {
@@ -295,7 +298,7 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                         // Ultra HD 4K Option (Unlocked with Rewarded Video)
                         InkWell(
                           onTap: () {
-                            if (_isUltraHdUnlocked) {
+                            if (_canUseUltraHd) {
                               setState(() => _quality = 3);
                             } else {
                               _promptUnlockUltraHd();
@@ -340,22 +343,22 @@ class _PdfToImagesScreenState extends State<PdfToImagesScreen> {
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: _isUltraHdUnlocked ? Colors.green : const Color(0xFF00ACC1),
+                                              color: _canUseUltraHd ? Colors.green : const Color(0xFF00ACC1),
                                               borderRadius: BorderRadius.circular(6),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
                                                 Icon(
-                                                  _isUltraHdUnlocked
+                                                  _canUseUltraHd
                                                       ? Icons.check_circle_rounded
-                                                      : Icons.play_circle_fill_rounded,
+                                                      : Icons.workspace_premium_rounded,
                                                   size: 11,
                                                   color: Colors.white,
                                                 ),
                                                 const SizedBox(width: 3),
                                                 Text(
-                                                  _isUltraHdUnlocked ? 'UNLOCKED' : 'PRO (AD)',
+                                                  _canUseUltraHd ? 'PRO ACTIVE' : 'PRO',
                                                   style: const TextStyle(
                                                     fontSize: 9.5,
                                                     fontWeight: FontWeight.w800,

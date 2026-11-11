@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'splash_screen.dart';
+import 'models/pro_subscription_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await ProSubscriptionManager.init();
   await MobileAds.instance.initialize();
   runApp(const MyApp());
 }
