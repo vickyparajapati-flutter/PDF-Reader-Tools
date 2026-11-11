@@ -24,3 +24,4 @@ class ProSubscriptionManager {
     isProUserNotifier.value = isPro;
   }
 }
+

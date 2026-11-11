@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import '../models/pro_subscription_manager.dart';
+import 'widgets/pro_subscription_modal.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -32,6 +34,113 @@ class ProfileTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // PRO Upgrade Subscription Card
+                  ValueListenableBuilder<bool>(
+                    valueListenable: ProSubscriptionManager.isProUserNotifier,
+                    builder: (context, isPro, _) {
+                      return InkWell(
+                        onTap: () {
+                          if (!isPro) {
+                            ProSubscriptionModal.show(context);
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: isPro
+                                  ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
+                                  : [const Color(0xFFFF8F00), const Color(0xFFE65100)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: (isPro ? const Color(0xFF2E7D32) : const Color(0xFFFF8F00))
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  isPro ? Icons.verified_rounded : Icons.workspace_premium_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          isPro ? 'PRO Lifetime Active' : 'Upgrade to PDF PRO',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            isPro ? 'ACTIVE' : 'VIP',
+                                            style: TextStyle(
+                                              color: isPro ? const Color(0xFF2E7D32) : const Color(0xFFE65100),
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 9.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      isPro
+                                          ? 'All ads removed & Ultra tools unlocked'
+                                          : 'Remove all ads, Ultra Max & 4K tools',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                isPro ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
                   // 100% Free & Privacy First Card
                   Container(
                     width: double.infinity,
