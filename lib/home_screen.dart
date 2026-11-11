@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/pdf_document_model.dart';
 import 'models/storage_helper.dart';
+import 'models/in_app_update_helper.dart';
 import 'views/files_tab.dart';
 import 'views/tools_tab.dart';
 import 'views/favorites_tab.dart';
@@ -28,6 +29,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadFavoritesAndScan();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      InAppUpdateHelper.checkForUpdate(context);
+    });
   }
 
   Future<void> _loadFavoritesAndScan() async {

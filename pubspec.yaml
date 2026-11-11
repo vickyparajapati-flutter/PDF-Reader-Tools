@@ -48,6 +48,7 @@ dependencies:
   syncfusion_flutter_pdf: ^33.2.13
   path_provider_android: ^2.3.1
   google_mobile_ads: ^5.2.0
+  in_app_update: ^4.2.3
 
 dev_dependencies:
   flutter_test:
