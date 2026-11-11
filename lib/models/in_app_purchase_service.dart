@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'pro_subscription_manager.dart';
 
 class InAppPurchaseService {
@@ -27,12 +28,12 @@ class InAppPurchaseService {
 
   final ValueNotifier<bool> isProductsLoadedNotifier = ValueNotifier<bool>(false);
 
-  /// Initialize In-App Purchases and listen for purchase updates
+  /// Initialize In-App Purchases, listen for stream events, and auto-sync on launch
   void initialize() async {
     isStoreAvailable = await _iap.isAvailable();
 
     if (!isStoreAvailable) {
-      debugPrint('[InAppPurchaseService] In-App Purchase store not available');
+      debugPrint('[InAppPurchaseService] Google Play Store Billing is not available on this device');
       return;
     }
 
@@ -44,7 +45,11 @@ class InAppPurchaseService {
       },
     );
 
+    // 1. Fetch available plans from store
     await loadProducts();
+
+    // 2. Auto-sync subscription status on app launch (Handles Reinstall, Cancellation, Refund)
+    await syncSubscriptionStatus();
   }
 
   /// Load available subscription products from Google Play
@@ -70,6 +75,51 @@ class InAppPurchaseService {
     }
   }
 
+  /// Automatically queries Google Play for current active subscriptions.
+  /// Handles:
+  /// 1. Reinstallation on new device / fresh install -> Auto unlocks Pro
+  /// 2. Cancellation / Expiry / Refund -> Auto revokes Pro
+  /// 3. Offline resilience -> If network is absent, keeps previous cached state safely
+  Future<void> syncSubscriptionStatus() async {
+    if (!isStoreAvailable) return;
+
+    try {
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final InAppPurchaseAndroidPlatformAddition androidAddition =
+            _iap.getPlatformAddition<InAppPurchaseAndroidPlatformAddition>();
+
+        // Query active purchases from Google Play cache
+        final QueryPurchaseDetailsResponse response =
+            await androidAddition.queryPastPurchases();
+
+        if (response.error == null) {
+          final activePurchases = response.pastPurchases.where((purchase) {
+            final isOurProduct = subscriptionIds.contains(purchase.productID);
+            final isValidStatus = purchase.status == PurchaseStatus.purchased ||
+                purchase.status == PurchaseStatus.restored;
+            return isOurProduct && isValidStatus;
+          }).toList();
+
+          if (activePurchases.isNotEmpty) {
+            // User has an active Google Play subscription
+            await ProSubscriptionManager.setProStatus(true);
+            debugPrint('[InAppPurchaseService] Auto-sync: Active subscription found (${activePurchases.first.productID}) -> PRO ACTIVE');
+          } else {
+            // No active subscription found on Google Play (Expired, Cancelled, or Refunded)
+            await ProSubscriptionManager.setProStatus(false);
+            debugPrint('[InAppPurchaseService] Auto-sync: No active subscription on Google Play -> PRO REVOKED');
+          }
+        }
+      } else {
+        // Fallback for non-android platforms
+        await _iap.restorePurchases();
+      }
+    } catch (e) {
+      // Network issues or Google Play offline: Retain cached status without revoking
+      debugPrint('[InAppPurchaseService] Sync exception (network offline, keeping cached state): $e');
+    }
+  }
+
   /// Buy a subscription (Monthly or Yearly)
   Future<bool> buySubscription(ProductDetails product) async {
     try {
@@ -83,12 +133,15 @@ class InAppPurchaseService {
     }
   }
 
-  /// Restore previous purchases (e.g. user reinstalled the app)
-  Future<void> restorePurchases() async {
+  /// User manually clicks "Restore Purchases" in Settings / Pro Modal
+  Future<bool> restorePurchases() async {
     try {
       await _iap.restorePurchases();
+      await syncSubscriptionStatus();
+      return ProSubscriptionManager.isPro;
     } catch (e) {
       debugPrint('[InAppPurchaseService] Restore error: $e');
+      return false;
     }
   }
 
@@ -106,8 +159,11 @@ class InAppPurchaseService {
           // Unlock PRO Features across the app
           ProSubscriptionManager.setProStatus(true);
           debugPrint('[InAppPurchaseService] PRO subscription unlocked for: ${purchase.productID}');
+        } else if (purchase.status == PurchaseStatus.canceled) {
+          debugPrint('[InAppPurchaseService] User canceled the billing dialog');
         }
 
+        // Acknowledge the purchase with Google Play to prevent 3-day auto-refund
         if (purchase.pendingCompletePurchase) {
           _iap.completePurchase(purchase);
         }
@@ -119,4 +175,3 @@ class InAppPurchaseService {
     _subscription?.cancel();
   }
 }
-
