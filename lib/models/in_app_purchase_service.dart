@@ -23,6 +23,7 @@ class InAppPurchaseService {
   List<ProductDetails> products = [];
   bool isStoreAvailable = false;
   bool isPurchasePending = false;
+  bool isLoadingProducts = false;
 
   final ValueNotifier<bool> isProductsLoadedNotifier = ValueNotifier<bool>(false);
 
@@ -48,18 +49,23 @@ class InAppPurchaseService {
 
   /// Load available subscription products from Google Play
   Future<void> loadProducts() async {
+    if (isLoadingProducts) return;
     try {
+      isLoadingProducts = true;
       final ProductDetailsResponse response = await _iap.queryProductDetails(subscriptionIds);
 
       if (response.error != null) {
         debugPrint('[InAppPurchaseService] Error fetching products: ${response.error!.message}');
+        isLoadingProducts = false;
         return;
       }
 
       products = response.productDetails;
       isProductsLoadedNotifier.value = products.isNotEmpty;
+      isLoadingProducts = false;
       debugPrint('[InAppPurchaseService] Loaded ${products.length} subscription products');
     } catch (e) {
+      isLoadingProducts = false;
       debugPrint('[InAppPurchaseService] Exception queryProductDetails: $e');
     }
   }
@@ -113,3 +119,4 @@ class InAppPurchaseService {
     _subscription?.cancel();
   }
 }
+
